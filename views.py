@@ -1,9 +1,9 @@
-from .app import app
 from flask import jsonify
-# from .models import Book
+
+from .app import app, session
+from .models import Book
 
 
 @app.route('/book/')
 def book():
-    # return Book.query.all()
-    return jsonify({'test': 'tist'})
+    return jsonify(session.query(Book).all())
