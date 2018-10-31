@@ -1,13 +1,9 @@
-from flask_sqlalchemy import SQLAlchemy
-from flask_api import FlaskAPI
+from flask import Flask
 
-app = FlaskAPI(__name__)
-db = SQLAlchemy(app)
+app = Flask(__name__)
 
 
-@app.route('/')
-def hello_world():
-    return {'Hello': 'World!'}
+from . import views
 
 
 if __name__ == '__main__':
