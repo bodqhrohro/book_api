@@ -6,8 +6,8 @@ Base = declarative_base()
 
 
 author_book_table = Table('author_book', Base.metadata,
-                          Column('author_id'), Integer, ForeignKey('author.id'),
-                          Column('book_id'), Integer, ForeignKey('book.id'))
+                          Column('author_id', Integer, ForeignKey('author.id')),
+                          Column('book_id', Integer, ForeignKey('book.id')))
 
 class Author(Base):
     __tablename__ = 'author'
