@@ -13,5 +13,11 @@ session = Session()
 from . import views
 
 
+# invoke on installation only
+def init_database():
+    from .models import Base
+    Base.metadata.create_all()
+
+
 if __name__ == '__main__':
     app.run()
