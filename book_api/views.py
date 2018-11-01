@@ -1,8 +1,9 @@
 from flask import jsonify, request
+from sqlalchemy.exc import IntegrityError
 
 from .app import app, session
 from .models import Book
-from .exceptions import InvalidUsage
+from .exceptions import InvalidUsage, Conflict
 from .validation import validate_book
 
 
@@ -23,7 +24,11 @@ def book():
             annotation=input['annotation'],
             authors=input['authors'],
         )
-        session.add(book)
-        session.commit()
+        try:
+            session.add(book)
+            session.commit()
+        except IntegrityError:
+            session.rollback()
+            raise Conflict('Already exists')
 
-        return jsonify(book)
+        return jsonify(book.to_json())
