@@ -1,15 +1,17 @@
 from flask import jsonify, request
+from marshmallow import ValidationError
 from sqlalchemy.exc import IntegrityError
 
 from .app import app, session
 from .models import Book
 from .exceptions import InvalidUsage, Conflict
-from .validation import validate_book
+from .validation import books_schema, book_schema, ValidatedBookSchema
 
 
 @app.route('/book/', methods=['GET'])
 def get_books():
-    return jsonify([book.to_json() for book in session.query(Book).all()])
+    result = books_schema.dump(session.query(Book).all())
+    return jsonify(result.data)
 
 
 @app.route('/book/', methods=['POST'])
@@ -19,13 +21,12 @@ def post_book():
     except:
         raise InvalidUsage('Can\'t read input JSON')
 
-    input = validate_book(input)
-    book = Book(
-        isbn=input['isbn'],
-        title=input['title'],
-        annotation=input['annotation'],
-        authors=input['authors'],
-    )
+    try:
+        input = ValidatedBookSchema().load(input)
+        book = Book(**input.data)
+    except ValidationError as err:
+        raise InvalidUsage(','.join(err.messages))
+
     try:
         session.add(book)
         session.commit()
@@ -33,4 +34,4 @@ def post_book():
         session.rollback()
         raise Conflict('Already exists')
 
-    return jsonify(book.to_json())
+    return book_schema.jsonify(book)

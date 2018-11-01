@@ -1,6 +1,7 @@
 from flask import Flask
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from flask_marshmallow import Marshmallow
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -8,6 +9,8 @@ app.config.from_pyfile('config.py')
 engine = create_engine(app.config['DB_CONNECTION_STRING'])
 Session = sessionmaker(bind=engine)
 session = Session()
+
+ma = Marshmallow(app)
 
 
 from book_api import views

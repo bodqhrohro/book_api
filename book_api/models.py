@@ -17,12 +17,6 @@ class Author(Base):
     def __str__(self):
         return self.name
 
-    def to_json(self):
-        return {
-            'id': self['id'],
-            'name': self['name'],
-        }
-
 
 class Book(Base):
     __tablename__ = 'book'
@@ -36,12 +30,3 @@ class Book(Base):
 
     def __str__(self):
         return self.title
-
-    def to_json(self):
-        return {
-            'id': self.id,
-            'isbn': self.isbn,
-            'title': self.title,
-            'annotation': self.annotation,
-            'authors': self.authors,
-        }
