@@ -10,13 +10,13 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 
-from . import views
+from book_api import views
 
 
 # invoke on installation only
 def init_database():
     from .models import Base
-    Base.metadata.create_all()
+    Base.metadata.create_all(engine)
 
 
 if __name__ == '__main__':
