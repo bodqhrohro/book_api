@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 
 from .app import app, session
 from .models import Book
-from .exceptions import InvalidUsage, Conflict
+from .exceptions import InvalidUsage, Conflict, NotFound
 from .validation import books_schema, book_schema, ValidatedBookSchema
 
 
@@ -62,3 +62,14 @@ def update_book(id):
     updated_book = session.query(Book).get(id)
     result = book_schema.dump(updated_book)
     return jsonify(result.data)
+
+
+@app.route('/book/<id>', methods=['DELETE'])
+def delete_book(id):
+    book = session.query(Book).get(id)
+    if not book:
+        raise NotFound('No such book')
+
+    session.delete(book)
+    session.commit()
+    return app.response_class(response=None, status=204)

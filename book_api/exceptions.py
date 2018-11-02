@@ -23,6 +23,17 @@ class Conflict(InvalidUsage):
     status_code = 409
 
 
+class NotFound(InvalidUsage):
+    status_code = 404
+
+
+@app.errorhandler(InvalidUsage)
+def handle_invalid_usage(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
+
+
 @app.errorhandler(InvalidUsage)
 def handle_invalid_usage(error):
     response = jsonify(error.to_dict())
