@@ -22,6 +22,16 @@ def _get_input_book():
     return book
 
 
+@app.route('/book/<id>', methods=['GET'])
+def get_book(id):
+    book = session.query(Book).get(id)
+    if not book:
+        raise NotFound('No such book')
+
+    result = book_schema.dump(book)
+    return jsonify(result.data)
+
+
 @app.route('/book', methods=['GET'])
 def get_books():
     result = books_schema.dump(session.query(Book).all())
