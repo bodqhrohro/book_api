@@ -1,13 +1,18 @@
 import string
 import re
 
-from .app import ma
 from marshmallow import fields, ValidationError
+from marshmallow_sqlalchemy import ModelSchema
+
+from .app import session
+from .models import Book
 
 
-class BookSchema(ma.Schema):
+class BookSchema(ModelSchema):
     class Meta:
-            fields = ['id', 'isbn', 'title', 'annotation', 'authors']
+        model = Book
+        fields = ['id', 'isbn', 'title', 'annotation', 'authors']
+        sqla_session = session
 
 book_schema = BookSchema()
 books_schema = BookSchema(many=True)
