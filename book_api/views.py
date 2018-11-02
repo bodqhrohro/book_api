@@ -45,22 +45,24 @@ def post_book():
 
 @app.route('/book/<id>', methods=['PUT'])
 def update_book(id):
-    book = _get_input_book()
+    input = _get_input_book()
 
     try:
-        session.query(Book).filter_by(id=id).update({
-            'isbn': book.isbn,
-            'title': book.title,
-            'annotation': book.annotation,
-            # 'authors': book.authors, # not touching for now
-        })
+        book = session.query(Book).get(id)
+        if not book:
+            raise NotFound('No such book')
+
+        book.isbn = input.isbn
+        book.title = input.title
+        book.annotation = input.annotation
+        # 'authors': book.authors, # not touching for now
+
         session.commit()
     except IntegrityError:
         session.rollback()
         raise Conflict('Already exists')
 
-    updated_book = session.query(Book).get(id)
-    result = book_schema.dump(updated_book)
+    result = book_schema.dump(book)
     return jsonify(result.data)
 
 
