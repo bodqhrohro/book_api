@@ -34,7 +34,21 @@ def get_book(id):
 
 @app.route('/book', methods=['GET'])
 def get_books():
-    result = books_schema.dump(session.query(Book).all())
+    try:
+        input = request.get_json() or {}
+    except:
+        input = {}
+
+    query = session.query(Book)
+
+    if 'isbn' in input:
+        query = query.filter(Book.isbn == input['isbn'])
+    if 'title' in input:
+        query = query.filter(Book.title.ilike('%%%s%%' % input['title']))
+    if 'annotation' in input:
+        query = query.filter(Book.annotation.ilike('%%%s%%' % input['annotation']))
+
+    result = books_schema.dump(query.all())
     return jsonify(result.data)
 
 
