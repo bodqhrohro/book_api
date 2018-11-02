@@ -1,9 +1,8 @@
 import string
 import re
 
-from .exceptions import InvalidUsage
 from .app import ma
-from marshmallow import fields
+from marshmallow import fields, ValidationError
 
 
 class BookSchema(ma.Schema):
@@ -14,8 +13,13 @@ book_schema = BookSchema()
 books_schema = BookSchema(many=True)
 
 
+def validate_isbn(isbn):
+    if not re.match(r'\d{13}', isbn):
+        raise ValidationError('ISBN should contain exactly 13 digits')
+
+
 class ValidatedBookSchema(BookSchema):
-    isbn = fields.String(validate=lambda s: re.match(r'\d{13}', s))
+    isbn = fields.String(validate=validate_isbn)
     title = fields.String()
     annotation = fields.String()
     authors = fields.List(fields.String)

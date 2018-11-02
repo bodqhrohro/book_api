@@ -21,11 +21,11 @@ def post_book():
     except:
         raise InvalidUsage('Can\'t read input JSON')
 
-    try:
-        input = ValidatedBookSchema().load(input)
-        book = Book(**input.data)
-    except ValidationError as err:
-        raise InvalidUsage(','.join(err.messages))
+    input, errors = ValidatedBookSchema().load(input)
+    for field in errors:
+        for message in errors[field]:
+            raise InvalidUsage('%s: %s' % (field, message))
+    book = Book(**input)
 
     try:
         session.add(book)
