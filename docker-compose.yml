@@ -5,10 +5,10 @@ services:
   website:
     build: .
     command: >
-      gunicorn -b 0.0.0.0:8000
+      gunicorn -b 0.0.0.0:8001
         --access-logfile -
         --reload
-        "book_api.app:create_app()"
+        "book_api.app:app"
     environment:
       PYTHONUNBUFFERED: 'true'
     volumes:
