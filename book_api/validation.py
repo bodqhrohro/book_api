@@ -43,4 +43,4 @@ class ValidatedBookSchema(BookSchema):
     isbn = fields.String(validate=validate_isbn)
     title = fields.String()
     annotation = fields.String()
-    authors = fields.List(fields.Integer())
+    authors = fields.Nested(AuthorSchema, many=True)

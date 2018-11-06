@@ -26,6 +26,21 @@ def _process_errors(errors):
 def _get_input_book():
     input = _read_json()
 
+    if 'authors' in input:
+        authors_dicts = []
+        for id in input['authors']:
+            author = session.query(Author).get(id)
+
+            if author:
+                authors_dicts.append({
+                    'id': id,
+                    'first_name': author.first_name,
+                    'last_name': author.last_name,
+                })
+            else:
+                raise InvalidUsage('Invalid author ID passed')
+        input['authors'] = authors_dicts
+
     book, errors = ValidatedBookSchema().load(input)
     _process_errors(errors)
 
@@ -81,20 +96,41 @@ def post_book():
 def update_book(id):
     input = _get_input_book()
 
-    try:
-        book = session.query(Book).get(id)
-        if not book:
-            raise NotFound('No such book')
+    # try:
+    book = session.query(Book).get(id)
+    if not book:
+        raise NotFound('No such book')
 
-        book.isbn = input.isbn
-        book.title = input.title
-        book.annotation = input.annotation
-        # 'authors': book.authors, # not touching for now
+    book.isbn = input.isbn
+    book.title = input.title
+    book.annotation = input.annotation
+    # 'authors': book.authors, # not touching for now
 
-        session.commit()
-    except IntegrityError:
-        session.rollback()
-        raise Conflict('Already exists')
+    renewed_authors = []
+    # add non-existing authors
+    for id in input.authors:
+        author = session.query(Author).get(id)
+
+        if not author:
+            raise InvalidUsage('Invalid author ID passed')
+        else:
+            same_authors = list(filter(
+                lambda a: a.id == author.id,
+                book.authors))
+
+            if len(same_authors) == 0:
+                book.authors.append(author)
+
+    renewed_authors.append(author)
+    # delete previously set but now absent authors
+    for author in book.authors:
+        if author not in renewed_authors:
+            book.authors.delete(author)
+
+    session.commit()
+    # except IntegrityError:
+    #     session.rollback()
+    #     raise Conflict('Already exists')
 
     result = book_schema.dump(book)
     return jsonify(result.data)
