@@ -3,21 +3,31 @@ from marshmallow import ValidationError
 from sqlalchemy.exc import IntegrityError
 
 from .app import app, session
-from .models import Book
+from .models import Book, Author
 from .exceptions import InvalidUsage, Conflict, NotFound
-from .validation import books_schema, book_schema, ValidatedBookSchema
+from .validation import authors_schema, author_schema, ValidatedAuthorSchema, \
+    books_schema, book_schema, ValidatedBookSchema
 
 
-def _get_input_book():
+def _read_json():
     try:
-        input = request.get_json()
+        return request.get_json()
     except:
         raise InvalidUsage('Can\'t read input JSON')
 
-    book, errors = ValidatedBookSchema().load(input)
+
+def _process_errors(errors):
     for field in errors:
-        for message in errors[field]:
-            raise InvalidUsage('%s: %s' % (field, message))
+        for error_type in errors[field]:
+            for message in errors[field][error_type]:
+                raise InvalidUsage('%s: %s: %s' % (field, error_type, message))
+
+
+def _get_input_book():
+    input = _read_json()
+
+    book, errors = ValidatedBookSchema().load(input)
+    _process_errors(errors)
 
     return book
 
@@ -97,5 +107,71 @@ def delete_book(id):
         raise NotFound('No such book')
 
     session.delete(book)
+    session.commit()
+    return app.response_class(response=None, status=204)
+
+
+def _get_input_author():
+    input = _read_json()
+
+    author, errors = ValidatedAuthorSchema().load(input)
+    _process_errors(errors)
+
+    return author
+
+
+@app.route('/author/<id>', methods=['GET'])
+def get_author(id):
+    author = session.query(Author).get(id)
+    if not author:
+        raise NotFound('No such author')
+
+    result = author_schema.dump(author)
+    return jsonify(result.data)
+
+
+@app.route('/author', methods=['GET'])
+def get_authors():
+    query = session.query(Author)
+
+    result = authors_schema.dump(query.all())
+    return jsonify(result.data)
+
+
+@app.route('/author', methods=['POST'])
+def post_author():
+    author = _get_input_author()
+
+    session.add(author)
+    session.commit()
+
+    result = author_schema.dump(author)
+    return jsonify(result.data)
+
+
+@app.route('/author/<id>', methods=['PUT'])
+def update_author(id):
+    input = _get_input_author()
+
+    author = session.query(Author).get(id)
+    if not author:
+        raise NotFound('No such author')
+
+    author.first_name = input.first_name
+    author.last_name = input.last_name
+
+    session.commit()
+
+    result = author_schema.dump(author)
+    return jsonify(result.data)
+
+
+@app.route('/author/<id>', methods=['DELETE'])
+def delete_author(id):
+    author = session.query(Author).get(id)
+    if not author:
+        raise NotFound('No such author')
+
+    session.delete(author)
     session.commit()
     return app.response_class(response=None, status=204)

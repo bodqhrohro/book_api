@@ -12,10 +12,11 @@ author_book_table = Table('author_book', Base.metadata,
 class Author(Base):
     __tablename__ = 'author'
     id = Column(Integer, primary_key=True)
-    name = Column(String)
+    first_name = Column(String)
+    last_name = Column(String)
 
     def __str__(self):
-        return self.name
+        return '%s %s' % (self.first_name, self.last_name)
 
 
 class Book(Base):
